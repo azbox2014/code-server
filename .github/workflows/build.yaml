@@ -1,0 +1,130 @@
+name: Build code-server image
+run-name: Build ${{ github.event.inputs.version || github.ref_name }}
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Image version (e.g. v0.0.1)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/code-server
+  ACR_IMAGE: ${{ secrets.ACR_MY_REGISTY }}/osc-org/code-server
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ------------------------------------------------
+      # 校验并获取当前镜像版本
+      # ------------------------------------------------
+      - name: Resolve image version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            RAW_VERSION="${{ inputs.version }}"
+            VERSION="beta-${RAW_VERSION}"
+          else
+            RAW_VERSION="${GITHUB_REF_NAME}"
+            VERSION="${RAW_VERSION}"
+          fi
+
+          # 校验原始格式
+          if ! [[ "$RAW_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version format: $RAW_VERSION"
+            echo "Expected format: v0.0.1"
+            exit 1
+          fi
+
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+          echo "Image version: ${VERSION}"
+
+      # ------------------------------------------------
+      # 安装 skopeo
+      # ------------------------------------------------
+      - name: Install skopeo
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y skopeo jq
+
+      # ------------------------------------------------
+      # 获取最新 upstream version-* tag
+      # ------------------------------------------------
+      - name: Resolve upstream image version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BASE_VERSION=$(
+            skopeo list-tags docker://docker.io/linuxserver/code-server \
+              | jq -r '.Tags[]' \
+              | grep '^version-[0-9]' \
+              | sort -V \
+              | tail -n1
+          )
+
+          if [[ -z "${BASE_VERSION}" ]]; then
+            echo "Failed to resolve upstream version"
+            exit 1
+          fi
+
+          echo "BASE_VERSION=${BASE_VERSION}" >> $GITHUB_ENV
+
+          echo "Upstream version: ${BASE_VERSION}"
+
+      # 登录 GitHub Container Registry
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.AGH_TOKEN }}
+
+      # 登录 ACR Container Registry
+      - name: Login to ACR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ACR_MY_REGISTY }}
+          username: ${{ secrets.ACR_MY_USER }}
+          password: ${{ secrets.ACR_MY_PASS }}
+
+      # ------------------------------------------------
+      # Buildx
+      # ------------------------------------------------
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ------------------------------------------------
+      # 构建并推送
+      # ------------------------------------------------
+      - name: Build and push
+        shell: bash
+        run: |
+          docker buildx build \
+            --pull \
+            --no-cache \
+            --platform linux/amd64,linux/arm64 \
+            --build-arg BASE_VERSION=${BASE_VERSION} \
+            -t ${IMAGE_NAME}:${VERSION} \
+            -t ${IMAGE_NAME}:latest \
+            -t ${ACR_IMAGE}:${VERSION} \
+            -t ${ACR_IMAGE}:latest \
+            --push \
+            .
