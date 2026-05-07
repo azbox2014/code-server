@@ -2,7 +2,7 @@ ARG BASE_VERSION=latest
 FROM docker.io/linuxserver/code-server:${BASE_VERSION}
 
 RUN apt-get update && apt-get install -y \
-    curl git zsh sudo ca-certificates unzip \
+    curl git zsh sudo ca-certificates unzip aria2 vim \
     && rm -rf /var/lib/apt/lists/*
 
 # Oh My Zsh & 插件（放系统目录）
