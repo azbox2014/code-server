@@ -20,6 +20,10 @@ RUN apt update && apt install -y --no-install-recommends \
     rsync \
     unzip \
     gnupg \
+    zsh \
+    sudo \
+    aria2 \
+    vim \
     && rm -rf /var/lib/apt/lists/*
 
 ARG TARGETARCH
