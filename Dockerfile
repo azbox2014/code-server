@@ -1,9 +1,146 @@
+ARG TARGETARCH
 ARG BASE_VERSION=latest
 FROM docker.io/linuxserver/code-server:${BASE_VERSION}
 
-RUN apt-get update && apt-get install -y \
-    curl git zsh sudo ca-certificates unzip aria2 vim \
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone
+
+# =========================
+# base tools
+# =========================
+RUN apt update && apt install -y --no-install-recommends \
+    curl \
+    git \
+    jq \
+    skopeo \
+    ca-certificates \
+    tzdata \
+    wget \
+    rsync \
+    unzip \
+    gnupg \
     && rm -rf /var/lib/apt/lists/*
+
+ARG TARGETARCH
+# =========================
+# arch mapping
+# =========================
+RUN set -eux; \
+    case "${TARGETARCH}" in \
+        amd64) ARCH="amd64" ;; \
+        arm64) ARCH="arm64" ;; \
+        arm) ARCH="arm" ;; \
+        *) echo "unsupported arch: ${TARGETARCH}" && exit 1 ;; \
+    esac; \
+    echo "ARCH=${ARCH}" > /tmp/arch.env
+
+# =========================
+# yq
+# =========================
+RUN set -eux; \
+    . /tmp/arch.env; \
+    curl -L "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${ARCH}" \
+      -o /usr/local/bin/yq; \
+    chmod +x /usr/local/bin/yq
+
+# =========================
+# kubectl
+# =========================
+RUN set -eux; \
+    . /tmp/arch.env; \
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/${ARCH}/kubectl"; \
+    chmod +x kubectl; \
+    mv kubectl /usr/local/bin/
+
+# =========================
+# helm
+# =========================
+RUN set -eux; \
+    . /tmp/arch.env; \
+    HELM_VERSION="v3.14.0"; \
+    curl -L "https://get.helm.sh/helm-${HELM_VERSION}-linux-${ARCH}.tar.gz" -o helm.tgz; \
+    tar -zxvf helm.tgz; \
+    mv linux-${ARCH}/helm /usr/local/bin/helm; \
+    chmod +x /usr/local/bin/helm; \
+    rm -rf helm.tgz linux-${ARCH}
+
+# =========================
+# flux
+# =========================
+RUN set -eux; \
+    . /tmp/arch.env; \
+    FLUX_VERSION="2.3.0"; \
+    curl -s https://fluxcd.io/install.sh | bash
+
+
+# =========================
+# docker buildx cli plugin
+# =========================
+RUN set -eux; \
+    . /tmp/arch.env; \
+    BUILDX_VERSION="v0.21.1"; \
+    case "${ARCH}" in \
+        amd64) BUILDX_ARCH="amd64" ;; \
+        arm64) BUILDX_ARCH="arm64" ;; \
+        arm) BUILDX_ARCH="arm-v7" ;; \
+        *) echo "unsupported arch for buildx: ${ARCH}" && exit 1 ;; \
+    esac; \
+    mkdir -p /usr/local/lib/docker/cli-plugins; \
+    curl -L "https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.linux-${BUILDX_ARCH}" \
+      -o /usr/local/lib/docker/cli-plugins/docker-buildx; \
+    chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
+
+# =========================
+# buildkit (buildctl)
+# =========================
+RUN set -eux; \
+    . /tmp/arch.env; \
+    BUILDKIT_VERSION="v0.24.0"; \
+    case "${ARCH}" in \
+        amd64) BUILDKIT_ARCH="amd64" ;; \
+        arm64) BUILDKIT_ARCH="arm64" ;; \
+        arm) BUILDKIT_ARCH="arm-v7" ;; \
+        *) echo "unsupported arch for buildkit: ${ARCH}" && exit 1 ;; \
+    esac; \
+    mkdir -p /tmp/buildkit-extract; \
+    curl -L "https://github.com/moby/buildkit/releases/download/${BUILDKIT_VERSION}/buildkit-${BUILDKIT_VERSION}.linux-${BUILDKIT_ARCH}.tar.gz" -o buildkit.tgz; \
+    tar -xzf buildkit.tgz -C /tmp/buildkit-extract; \
+    mv /tmp/buildkit-extract/bin/buildctl /usr/local/bin/buildctl; \
+    chmod +x /usr/local/bin/buildctl; \
+    rm -rf buildkit.tgz /tmp/buildkit-extract
+
+# =========================
+# docker cli (remote daemon)
+# =========================
+RUN set -eux; \
+    . /tmp/arch.env; \
+    DOCKER_VERSION="28.0.4"; \
+    case "${ARCH}" in \
+        amd64) DOCKER_ARCH="x86_64" ;; \
+        arm64) DOCKER_ARCH="aarch64" ;; \
+        arm) DOCKER_ARCH="armhf" ;; \
+        *) echo "unsupported arch for docker cli: ${ARCH}" && exit 1 ;; \
+    esac; \
+    curl -fL "https://download.docker.com/linux/static/stable/${DOCKER_ARCH}/docker-${DOCKER_VERSION}.tgz" -o docker.tgz; \
+    tar -xzf docker.tgz; \
+    mv docker/docker /usr/local/bin/docker; \
+    chmod +x /usr/local/bin/docker; \
+    rm -rf docker.tgz docker
+
+# install age
+RUN AGE_VERSION=v1.2.0 && \
+    curl -L https://github.com/FiloSottile/age/releases/download/${AGE_VERSION}/age-${AGE_VERSION}-linux-amd64.tar.gz \
+    | tar xz && \
+    mv age/age /usr/local/bin/ && \
+    mv age/age-keygen /usr/local/bin/ && \
+    chmod +x /usr/local/bin/age*
+
+# install sops
+RUN SOPS_VERSION=v3.8.1 && \
+    curl -L https://github.com/getsops/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux.amd64 \
+    -o /usr/local/bin/sops && \
+    chmod +x /usr/local/bin/sops
 
 # Oh My Zsh & 插件（放系统目录）
 RUN git clone https://github.com/ohmyzsh/ohmyzsh.git /opt/oh-my-zsh && \
