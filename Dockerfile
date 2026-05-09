@@ -24,6 +24,7 @@ RUN apt update && apt install -y --no-install-recommends \
     sudo \
     aria2 \
     vim \
+    gh \
     && rm -rf /var/lib/apt/lists/*
 
 ARG TARGETARCH
