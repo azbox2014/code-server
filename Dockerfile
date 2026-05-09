@@ -63,7 +63,7 @@ RUN set -eux; \
 # =========================
 RUN set -eux; \
     . /tmp/arch.env; \
-    HELM_VERSION="v3.14.0"; \
+    HELM_VERSION="v4.1.4"; \
     curl -L "https://get.helm.sh/helm-${HELM_VERSION}-linux-${ARCH}.tar.gz" -o helm.tgz; \
     tar -zxvf helm.tgz; \
     mv linux-${ARCH}/helm /usr/local/bin/helm; \
@@ -75,8 +75,25 @@ RUN set -eux; \
 # =========================
 RUN set -eux; \
     . /tmp/arch.env; \
-    FLUX_VERSION="2.3.0"; \
+    FLUX_VERSION="2.8.6"; \
     curl -s https://fluxcd.io/install.sh | bash
+
+
+RUN set -eux; \
+    . /tmp/arch.env; \
+    KUSTOMIZE_VERSION="v5.8.1"; \
+    case "${ARCH}" in \
+        amd64) KUSTOMIZE_ARCH="amd64" ;; \
+        arm64) KUSTOMIZE_ARCH="arm64" ;; \
+        arm) echo "skip kustomize install on armv7" && exit 0 ;; \
+        *) echo "unsupported arch for kustomize: ${ARCH}" && exit 1 ;; \
+    esac; \
+    curl -L "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_${KUSTOMIZE_ARCH}.tar.gz" \
+      -o /tmp/kustomize.tar.gz; \
+    tar -xzf /tmp/kustomize.tar.gz -C /tmp; \
+    mv /tmp/kustomize /usr/local/bin/kustomize; \
+    chmod +x /usr/local/bin/kustomize; \
+    rm -f /tmp/kustomize.tar.gz
 
 
 # =========================
@@ -84,7 +101,7 @@ RUN set -eux; \
 # =========================
 RUN set -eux; \
     . /tmp/arch.env; \
-    BUILDX_VERSION="v0.21.1"; \
+    BUILDX_VERSION="v0.33.0"; \
     case "${ARCH}" in \
         amd64) BUILDX_ARCH="amd64" ;; \
         arm64) BUILDX_ARCH="arm64" ;; \
@@ -101,7 +118,7 @@ RUN set -eux; \
 # =========================
 RUN set -eux; \
     . /tmp/arch.env; \
-    BUILDKIT_VERSION="v0.24.0"; \
+    BUILDKIT_VERSION="v0.29.0"; \
     case "${ARCH}" in \
         amd64) BUILDKIT_ARCH="amd64" ;; \
         arm64) BUILDKIT_ARCH="arm64" ;; \
@@ -120,7 +137,7 @@ RUN set -eux; \
 # =========================
 RUN set -eux; \
     . /tmp/arch.env; \
-    DOCKER_VERSION="28.0.4"; \
+    DOCKER_VERSION="29.4.2"; \
     case "${ARCH}" in \
         amd64) DOCKER_ARCH="x86_64" ;; \
         arm64) DOCKER_ARCH="aarch64" ;; \
@@ -134,7 +151,7 @@ RUN set -eux; \
     rm -rf docker.tgz docker
 
 # install age
-RUN AGE_VERSION=v1.2.0 && \
+RUN AGE_VERSION=v1.3.1 && \
     curl -L https://github.com/FiloSottile/age/releases/download/${AGE_VERSION}/age-${AGE_VERSION}-linux-amd64.tar.gz \
     | tar xz && \
     mv age/age /usr/local/bin/ && \
@@ -142,7 +159,7 @@ RUN AGE_VERSION=v1.2.0 && \
     chmod +x /usr/local/bin/age*
 
 # install sops
-RUN SOPS_VERSION=v3.8.1 && \
+RUN SOPS_VERSION=v3.12.2 && \
     curl -L https://github.com/getsops/sops/releases/download/${SOPS_VERSION}/sops-${SOPS_VERSION}.linux.amd64 \
     -o /usr/local/bin/sops && \
     chmod +x /usr/local/bin/sops
