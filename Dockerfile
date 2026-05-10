@@ -35,7 +35,6 @@ RUN set -eux; \
     case "${TARGETARCH}" in \
         amd64) ARCH="amd64" ;; \
         arm64) ARCH="arm64" ;; \
-        arm) ARCH="arm" ;; \
         *) echo "unsupported arch: ${TARGETARCH}" && exit 1 ;; \
     esac; \
     echo "ARCH=${ARCH}" > /tmp/arch.env
@@ -48,6 +47,13 @@ RUN set -eux; \
     curl -L "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${ARCH}" \
       -o /usr/local/bin/yq; \
     chmod +x /usr/local/bin/yq
+
+RUN set -eux; \
+    . /tmp/arch.env; \
+    REGCTL_VERSION="v0.11.3"; \
+    curl -L https://github.com/regclient/regclient/releases/download/${REGCTL_VERSION}/regctl-linux-${ARCH} \
+      -o /usr/local/bin/regctl && \
+    chmod +x /usr/local/bin/regctl
 
 # =========================
 # kubectl
@@ -85,7 +91,6 @@ RUN set -eux; \
     case "${ARCH}" in \
         amd64) KUSTOMIZE_ARCH="amd64" ;; \
         arm64) KUSTOMIZE_ARCH="arm64" ;; \
-        arm) echo "skip kustomize install on armv7" && exit 0 ;; \
         *) echo "unsupported arch for kustomize: ${ARCH}" && exit 1 ;; \
     esac; \
     curl -L "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_${KUSTOMIZE_ARCH}.tar.gz" \
@@ -105,7 +110,6 @@ RUN set -eux; \
     case "${ARCH}" in \
         amd64) BUILDX_ARCH="amd64" ;; \
         arm64) BUILDX_ARCH="arm64" ;; \
-        arm) BUILDX_ARCH="arm-v7" ;; \
         *) echo "unsupported arch for buildx: ${ARCH}" && exit 1 ;; \
     esac; \
     mkdir -p /usr/local/lib/docker/cli-plugins; \
@@ -122,7 +126,6 @@ RUN set -eux; \
     case "${ARCH}" in \
         amd64) BUILDKIT_ARCH="amd64" ;; \
         arm64) BUILDKIT_ARCH="arm64" ;; \
-        arm) BUILDKIT_ARCH="arm-v7" ;; \
         *) echo "unsupported arch for buildkit: ${ARCH}" && exit 1 ;; \
     esac; \
     mkdir -p /tmp/buildkit-extract; \
@@ -141,7 +144,6 @@ RUN set -eux; \
     case "${ARCH}" in \
         amd64) DOCKER_ARCH="x86_64" ;; \
         arm64) DOCKER_ARCH="aarch64" ;; \
-        arm) DOCKER_ARCH="armhf" ;; \
         *) echo "unsupported arch for docker cli: ${ARCH}" && exit 1 ;; \
     esac; \
     curl -fL "https://download.docker.com/linux/static/stable/${DOCKER_ARCH}/docker-${DOCKER_VERSION}.tgz" -o docker.tgz; \
