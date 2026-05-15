@@ -81,7 +81,7 @@ RUN set -eux; \
 # =========================
 RUN set -eux; \
     . /tmp/arch.env; \
-    FLUX_VERSION="2.8.6"; \
+    FLUX_VERSION="2.8.7"; \
     curl -s https://fluxcd.io/install.sh | bash
 
 
