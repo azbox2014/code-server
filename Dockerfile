@@ -25,6 +25,7 @@ RUN apt update && apt install -y --no-install-recommends \
     aria2 \
     vim \
     gh \
+    nfs-common \
     && rm -rf /var/lib/apt/lists/*
 
 ARG TARGETARCH
