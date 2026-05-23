@@ -26,6 +26,8 @@ RUN apt update && apt install -y --no-install-recommends \
     vim \
     gh \
     nfs-common \
+    dnsutils \
+    iputils-ping \
     && rm -rf /var/lib/apt/lists/*
 
 ARG TARGETARCH
