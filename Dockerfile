@@ -28,6 +28,7 @@ RUN apt update && apt install -y --no-install-recommends \
     nfs-common \
     dnsutils \
     iputils-ping \
+    rclone \
     && rm -rf /var/lib/apt/lists/*
 
 ARG TARGETARCH
