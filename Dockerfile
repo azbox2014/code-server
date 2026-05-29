@@ -28,7 +28,8 @@ RUN apt update && apt install -y --no-install-recommends \
     nfs-common \
     dnsutils \
     iputils-ping \
-    rclone 
+    rclone \
+    && rm -rf /var/lib/apt/lists/*
 
 ARG TARGETARCH
 # =========================
@@ -169,8 +170,7 @@ RUN usermod -s /usr/bin/zsh abc
 
 # 拷贝初始化脚本
 COPY init-zsh.sh /usr/local/bin/init-zsh.sh
-RUN chmod +x /usr/local/bin/init-zsh.sh \
-    && rm -rf /var/lib/apt/lists/*
+RUN chmod +x /usr/local/bin/init-zsh.sh 
 
 # 挂到 linuxserver 启动流程
 RUN mkdir -p /custom-cont-init.d && \
