@@ -28,8 +28,7 @@ RUN apt update && apt install -y --no-install-recommends \
     nfs-common \
     dnsutils \
     iputils-ping \
-    rclone \
-    && rm -rf /var/lib/apt/lists/*
+    rclone 
 
 ARG TARGETARCH
 # =========================
@@ -71,22 +70,12 @@ RUN set -eux; \
 # =========================
 # helm
 # =========================
-RUN set -eux; \
-    . /tmp/arch.env; \
-    HELM_VERSION="v4.1.4"; \
-    curl -L "https://get.helm.sh/helm-${HELM_VERSION}-linux-${ARCH}.tar.gz" -o helm.tgz; \
-    tar -zxvf helm.tgz; \
-    mv linux-${ARCH}/helm /usr/local/bin/helm; \
-    chmod +x /usr/local/bin/helm; \
-    rm -rf helm.tgz linux-${ARCH}
+RUN set -eux; curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 | bash
 
 # =========================
 # flux
 # =========================
-RUN set -eux; \
-    . /tmp/arch.env; \
-    FLUX_VERSION="2.8.7"; \
-    curl -s https://fluxcd.io/install.sh | bash
+RUN set -eux; curl -s https://fluxcd.io/install.sh | bash
 
 
 RUN set -eux; \
@@ -180,7 +169,8 @@ RUN usermod -s /usr/bin/zsh abc
 
 # 拷贝初始化脚本
 COPY init-zsh.sh /usr/local/bin/init-zsh.sh
-RUN chmod +x /usr/local/bin/init-zsh.sh
+RUN chmod +x /usr/local/bin/init-zsh.sh \
+    && rm -rf /var/lib/apt/lists/*
 
 # 挂到 linuxserver 启动流程
 RUN mkdir -p /custom-cont-init.d && \
