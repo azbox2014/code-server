@@ -26,6 +26,7 @@ RUN apt update && apt install -y --no-install-recommends \
     vim \
     gh \
     nfs-common \
+    wireguard-tools \
     && rm -rf /var/lib/apt/lists/*
 
 ARG TARGETARCH
