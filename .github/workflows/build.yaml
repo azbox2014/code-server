@@ -68,7 +68,7 @@ jobs:
           set -euo pipefail
           set -x
           VERSION=
-          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]] && [[ -n "${{ inputs.version }}" ]]; then
+          if [[ ${GITHUB_EVENT_NAME} == workflow_dispatch ]] && [[ -n ${{ inputs.version }} ]]; then
             VERSION="${{ inputs.version }}"
             EXIST=$(skopeo list-tags docker://docker.io/linuxserver/code-server \
               | jq -r '.Tags[]' \
