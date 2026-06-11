@@ -30,6 +30,8 @@ RUN apt update && apt install -y --no-install-recommends \
     dnsutils \
     iputils-ping \
     rclone \
+    build-essential \
+    pkg-config libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ARG TARGETARCH
