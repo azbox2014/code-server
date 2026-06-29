@@ -103,7 +103,7 @@ RUN set -eux; \
 # =========================
 RUN set -eux; \
     . /tmp/arch.env; \
-    BUILDX_VERSION="v0.33.0"; \
+    BUILDX_VERSION="v0.35.0"; \
     case "${ARCH}" in \
         amd64) BUILDX_ARCH="amd64" ;; \
         arm64) BUILDX_ARCH="arm64" ;; \
@@ -137,7 +137,7 @@ RUN set -eux; \
 # =========================
 RUN set -eux; \
     . /tmp/arch.env; \
-    DOCKER_VERSION="29.4.2"; \
+    DOCKER_VERSION="29.6.1"; \
     case "${ARCH}" in \
         amd64) DOCKER_ARCH="x86_64" ;; \
         arm64) DOCKER_ARCH="aarch64" ;; \
