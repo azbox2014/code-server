@@ -25,6 +25,7 @@ RUN apt update && apt install -y --no-install-recommends \
     aria2 \
     vim \
     gh \
+    tmux \
     nfs-common \
     wireguard-tools \
     dnsutils \
