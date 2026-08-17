@@ -117,6 +117,8 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.VERSION }}
             ${{ env.IMAGE_NAME }}:latest
+            ${{ env.ACR_IMAGE }}:${{ env.VERSION }}
+            ${{ env.ACR_IMAGE }}:latest
             ${{ env.PUB_IMAGE }}:${{ env.VERSION }}
             ${{ env.PUB_IMAGE }}:latest
           build-args: |
