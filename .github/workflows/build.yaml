@@ -117,11 +117,24 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.VERSION }}
             ${{ env.IMAGE_NAME }}:latest
-            ${{ env.ACR_IMAGE }}:${{ env.VERSION }}
-            ${{ env.ACR_IMAGE }}:latest
             ${{ env.PUB_IMAGE }}:${{ env.VERSION }}
             ${{ env.PUB_IMAGE }}:latest
           build-args: |
             BASE_VERSION=${{ env.BASE_VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Build and Push to ACR
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ env.ACR_IMAGE }}:${{ env.VERSION }}
+            ${{ env.ACR_IMAGE }}:latest
+          build-args: |
+            BASE_VERSION=${{ env.BASE_VERSION }}
+          cache-from: type=gha
