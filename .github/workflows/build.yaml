@@ -3,10 +3,10 @@ run-name: Build(code-server) ${{ github.event.inputs.version || github.ref_name 
 
 on:
   workflow_dispatch:
-    inputs:
-      VERSION:
-        description: "Upstream code-server version (e.g. 0.0.1)"
-        required: false
+    # inputs:
+    #   VERSION:
+    #     description: "Upstream code-server version (e.g. 0.0.1)"
+    #     required: false
 
   pull_request:
     branches:
