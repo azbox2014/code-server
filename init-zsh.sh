@@ -27,6 +27,7 @@ source $ZSH/oh-my-zsh.sh
 EOF
   # 权限修复
   chown abc:abc "$ZSHRC"
+  chown abc:abc $CONFIG_DIR
 
   echo ">>> Zsh initialized."
 else
