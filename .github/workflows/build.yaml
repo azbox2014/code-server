@@ -1,5 +1,5 @@
 name: Build code-server image
-run-name: Build ${{ github.event.inputs.version || github.ref_name }}
+run-name: Build(code-server) ${{ github.event.inputs.version || github.ref_name }}
 
 on:
   workflow_dispatch:
@@ -135,8 +135,8 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.VERSION }}
             ${{ env.IMAGE_NAME }}:latest
-            ${{ env.ACR_IMAGE }}:${{ env.VERSION }}
-            ${{ env.ACR_IMAGE }}:latest
+            # ${{ env.ACR_IMAGE }}:${{ env.VERSION }}
+            # ${{ env.ACR_IMAGE }}:latest
             ${{ env.PUB_IMAGE }}:${{ env.VERSION }}
             ${{ env.PUB_IMAGE }}:latest
           build-args: |
