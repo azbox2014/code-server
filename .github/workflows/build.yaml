@@ -138,3 +138,5 @@ jobs:
           build-args: |
             BASE_VERSION=${{ env.BASE_VERSION }}
           cache-from: type=gha
+          provenance: false
+          sbom: false
