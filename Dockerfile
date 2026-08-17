@@ -165,9 +165,9 @@ RUN SOPS_VERSION=v3.12.2 && \
     chmod +x /usr/local/bin/sops
 
 # Oh My Zsh & 插件（放系统目录）
-RUN git clone https://github.com/ohmyzsh/ohmyzsh.git /opt/oh-my-zsh && \
-    git clone https://github.com/romkatv/powerlevel10k.git /opt/oh-my-zsh/custom/themes/powerlevel10k && \
-    git clone https://github.com/zsh-users/zsh-autosuggestions /opt/oh-my-zsh/custom/plugins/zsh-autosuggestions
+RUN git clone https://gitcode.com/gh_mirrors/oh/ohmyzsh.git /opt/oh-my-zsh && \
+    git clone https://gitcode.com/GitHub_Trending/po/powerlevel10k.git /opt/oh-my-zsh/custom/themes/powerlevel10k && \
+    git clone https://gitcode.com/gh_mirrors/zs/zsh-autosuggestions.git /opt/oh-my-zsh/custom/plugins/zsh-autosuggestions
 
 # 设置默认 shell
 RUN usermod -s /usr/bin/zsh abc
